@@ -5,7 +5,7 @@
 
 **🌐 [English](./README.md) | [简体中文](./README_zh-CN.md) | [繁體中文](./README_zh-TW.md) | [日本語](./README_ja.md)**
 
-[![Version](https://img.shields.io/badge/version-v3.3-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v3.3.3-blue.svg)](./CHANGELOG.md)
 [![Docker](https://img.shields.io/badge/docker-supported-brightgreen.svg)](./docker-compose.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Language](https://img.shields.io/badge/languages-4-orange.svg)](#多语言支持)
