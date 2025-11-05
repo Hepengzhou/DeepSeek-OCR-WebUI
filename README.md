@@ -40,7 +40,7 @@ DeepSeek-OCR-WebUI is an intelligent image recognition web application based on 
 
 <div align="center">
 
-![DeepSeek-OCR-WebUI Interface](./assets/ui_screenshot.png)
+![DeepSeek-OCR-WebUI Interface](./assets/ui_screenshot.png?v=3.3.3)
 
 **Modern user interface with multilingual support, batch processing, and bounding box visualization**
 

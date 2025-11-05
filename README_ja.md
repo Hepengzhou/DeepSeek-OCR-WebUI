@@ -40,7 +40,7 @@ DeepSeek-OCR-WebUIは、DeepSeek-OCRモデルに基づくインテリジェン�
 
 <div align="center">
 
-![DeepSeek-OCR-WebUI インターフェース](./assets/ui_screenshot.png)
+![DeepSeek-OCR-WebUI インターフェース](./assets/ui_screenshot.png?v=3.3.3)
 
 **多言語サポート、バッチ処理、バウンディングボックス可視化を備えたモダンなユーザーインターフェース**
 
