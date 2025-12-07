@@ -28,7 +28,8 @@ class MPSBackend:
                 revision=self.revision,
                 trust_remote_code=True,
                 torch_dtype=torch.float32,  # float32 for MPS compatibility
-                low_cpu_mem_usage=True
+                low_cpu_mem_usage=True,
+                attn_implementation="eager"  # Disable flash attention for MPS
             ).to(self.device)
             
             self.model.eval()

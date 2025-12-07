@@ -45,7 +45,8 @@ class TransformersBackend:
                 **inputs,
                 max_new_tokens=kwargs.get('max_tokens', 2048),
                 temperature=kwargs.get('temperature', 0.0),
-                do_sample=False
+                do_sample=False,
+                pad_token_id=self.processor.tokenizer.eos_token_id
             )
             
             result = self.processor.decode(outputs[0], skip_special_tokens=False)

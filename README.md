@@ -162,6 +162,94 @@ DeepSeek-OCR-WebUI now supports PDF file uploads! When you upload a PDF file, it
 
 ---
 
+## 🐳 Docker Hub - Quick Start (Recommended)
+
+**🎉 Pre-built all-in-one image available on Docker Hub!**
+
+No need to build from source - just pull and run:
+
+```bash
+# Pull the image
+docker pull neosun/deepseek-ocr:latest
+
+# Run the container
+docker run -d \
+  --name deepseek-ocr \
+  --gpus all \
+  -p 8001:8001 \
+  --shm-size=8g \
+  neosun/deepseek-ocr:latest
+
+# Access the service
+# Web UI: http://localhost:8001
+# API: http://localhost:8001/ocr
+```
+
+**Image Features**:
+- ✅ All-in-one - Includes all dependencies and pre-downloaded model (~20GB)
+- ✅ No waiting - Ready to use immediately, no model download needed
+- ✅ Full features - All API endpoints and Web UI included
+- ✅ Production ready - Fully tested and verified
+
+📖 **Full Docker Hub Guide**: [DOCKER_HUB.md](./DOCKER_HUB.md)
+
+---
+
+## 🔌 API & MCP Support
+
+### REST API
+DeepSeek-OCR provides a complete REST API for programmatic access:
+
+```python
+import requests
+
+# Simple OCR (single image)
+with open("image.png", "rb") as f:
+    response = requests.post(
+        "http://localhost:8001/ocr",
+        files={"file": f},
+        data={"prompt_type": "ocr"}
+    )
+    print(response.json()["text"])
+
+# PDF OCR (all pages) ⭐ NEW
+with open("document.pdf", "rb") as f:
+    response = requests.post(
+        "http://localhost:8001/ocr-pdf",
+        files={"file": f},
+        data={"prompt_type": "document"},
+        timeout=600
+    )
+    result = response.json()
+    print(result["merged_text"])  # Get all pages merged
+```
+
+**Available Endpoints**:
+- `GET /health` - Health check
+- `POST /ocr` - Single image OCR
+- `POST /ocr-pdf` - PDF OCR (all pages) ⭐ NEW
+- `POST /pdf-to-images` - Convert PDF to images
+
+📖 **Full API Documentation**: [API.md](./API.md)
+
+### MCP (Model Context Protocol)
+Enable AI assistants like Claude Desktop to use OCR directly:
+
+```json
+{
+  "mcpServers": {
+    "deepseek-ocr": {
+      "command": "python",
+      "args": ["/path/to/mcp_server.py"]
+    }
+  }
+}
+```
+
+📖 **MCP Setup Guide**: [MCP_SETUP.md](./MCP_SETUP.md)
+
+---
+
 ## 📦 Quick Start
 
 ### Prerequisites

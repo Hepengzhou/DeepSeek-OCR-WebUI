@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepSeek OCR - 智能图像识别</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -1488,9 +1489,13 @@
                         <button class="btn btn-primary" id="downloadBtn">
                             <span>⬇️</span> 下载文本
                         </button>
+                        <button class="btn btn-secondary" id="mdPreviewBtn" style="display:none;">
+                            <span>👁️</span> <span id="mdPreviewText">预览 Markdown</span>
+                        </button>
                     </div>
                 </div>
                 <div class="result-text" id="resultText"></div>
+                <div class="result-text" id="resultMarkdown" style="display:none; padding: 20px; background: white; border-radius: 8px;"></div>
             </div>
 
             <!-- Log Section -->
@@ -3084,6 +3089,14 @@
             }).join('\n');
 
             elements.resultText.textContent = mergedText;
+            
+            // Show Markdown preview button if mode is doc_to_markdown
+            const mdBtn = document.getElementById('mdPreviewBtn');
+            if (state.mode === 'doc_to_markdown') {
+                mdBtn.style.display = 'inline-flex';
+            } else {
+                mdBtn.style.display = 'none';
+            }
         }
 
         // Copy Result
@@ -3152,6 +3165,28 @@
                 '包含图片': `${state.results.length} 张`,
                 '保存位置': '浏览器默认下载文件夹'
             });
+        }
+
+        // Toggle Markdown Preview
+        let isMarkdownPreview = false;
+        function toggleMarkdownPreview() {
+            const textDiv = document.getElementById('resultText');
+            const mdDiv = document.getElementById('resultMarkdown');
+            const btnText = document.getElementById('mdPreviewText');
+            
+            isMarkdownPreview = !isMarkdownPreview;
+            
+            if (isMarkdownPreview) {
+                const text = textDiv.textContent;
+                mdDiv.innerHTML = marked.parse(text);
+                textDiv.style.display = 'none';
+                mdDiv.style.display = 'block';
+                btnText.textContent = '查看原文';
+            } else {
+                textDiv.style.display = 'block';
+                mdDiv.style.display = 'none';
+                btnText.textContent = '预览 Markdown';
+            }
         }
 
         // Clear All

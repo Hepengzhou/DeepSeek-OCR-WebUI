@@ -72,16 +72,23 @@ async def lifespan(app: FastAPI):
     print("🚀 DeepSeek-OCR Unified Service Starting...")
     print("="*50)
     
+    # Check for local model path
+    local_model_path = os.environ.get("LOCAL_MODEL_PATH", "")
+    model_path = local_model_path if local_model_path else "deepseek-ai/DeepSeek-OCR"
+    
+    if local_model_path:
+        print(f"📁 Using local model: {local_model_path}")
+    
     backend_type = detect_platform()
     
     if backend_type == "mps":
         # Apple Silicon with MPS
         from backends.mps_backend import MPSBackend
-        backend = MPSBackend()
+        backend = MPSBackend(model_path=model_path)
         backend.load_model()
     elif backend_type == "cuda":
         from backends.cuda_backend import CUDABackend
-        backend = CUDABackend()
+        backend = CUDABackend(model_path=model_path)
         # Try HuggingFace first, fallback to ModelScope
         try:
             backend.load_model(source="huggingface", timeout=300)
@@ -90,7 +97,7 @@ async def lifespan(app: FastAPI):
             backend.load_model(source="modelscope")
     elif backend_type == "cpu":
         from backends.cpu_backend import CPUBackend
-        backend = CPUBackend()
+        backend = CPUBackend(model_path=model_path)
         backend.load_model()
     else:
         raise RuntimeError("No supported backend available")
@@ -106,7 +113,10 @@ app = FastAPI(
     title="DeepSeek-OCR Unified API",
     description="Multi-platform OCR service (MLX/CUDA)",
     version="4.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    swagger_ui_parameters={"syntaxHighlight": False}
 )
 
 app.add_middleware(

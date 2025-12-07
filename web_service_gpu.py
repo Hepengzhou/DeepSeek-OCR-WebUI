@@ -338,6 +338,111 @@ async def pdf_to_images_endpoint(file: UploadFile = File(...)):
         if tmp_file and os.path.exists(tmp_file):
             os.remove(tmp_file)
 
+@app.post("/ocr-pdf")
+async def ocr_pdf_endpoint(
+    file: UploadFile = File(...),
+    prompt_type: str = Form("document"),
+    find_term: str = Form(""),
+    custom_prompt: str = Form("")
+):
+    """PDF OCR - 处理所有页面并返回合并结果"""
+    tmp_file = None
+    
+    try:
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Must be PDF file")
+        
+        # 保存 PDF
+        pdf_data = await file.read()
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf', mode='wb') as tmp:
+            tmp.write(pdf_data)
+            tmp_file = tmp.name
+        
+        # 转换 PDF 为图片
+        pdf_doc = fitz.open(tmp_file)
+        zoom = 144 / 72.0
+        matrix = fitz.Matrix(zoom, zoom)
+        
+        results = []
+        all_text = []
+        
+        # 获取模型（只加载一次）
+        if gpu_manager:
+            model, processor = gpu_manager.get_model(load_func=load_model_func)
+        else:
+            from backends.cpu_backend import CPUBackend
+            backend = CPUBackend()
+            backend.load_model()
+            model, processor = backend.model, backend.processor
+        
+        from backends.cuda_backend import CUDABackend
+        backend = CUDABackend()
+        backend.model = model
+        backend.processor = processor
+        
+        # 构建提示词
+        prompt = build_prompt(prompt_type, custom_prompt, find_term)
+        
+        # 处理每一页
+        for page_num in range(pdf_doc.page_count):
+            page = pdf_doc[page_num]
+            pixmap = page.get_pixmap(matrix=matrix, alpha=False)
+            img_data = pixmap.tobytes("png")
+            
+            # 保存临时图片
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.png', mode='wb') as img_tmp:
+                img_tmp.write(img_data)
+                img_path = img_tmp.name
+            
+            try:
+                # OCR 识别
+                text = backend.infer(prompt=prompt, image_path=img_path)
+                display_text = clean_grounding_text(text)
+                
+                results.append({
+                    "page": page_num + 1,
+                    "text": display_text,
+                    "raw_text": text
+                })
+                
+                all_text.append(f"--- Page {page_num + 1} ---\n{display_text}\n")
+                
+            finally:
+                if os.path.exists(img_path):
+                    os.remove(img_path)
+        
+        pdf_doc.close()
+        
+        # 卸载模型
+        if gpu_manager:
+            gpu_manager.force_offload()
+        
+        return JSONResponse({
+            "success": True,
+            "filename": file.filename,
+            "page_count": len(results),
+            "pages": results,
+            "merged_text": "\n".join(all_text),
+            "metadata": {
+                "mode": prompt_type,
+                "backend": backend_type,
+                "gpu_managed": gpu_manager is not None
+            }
+        })
+        
+    except Exception as e:
+        if gpu_manager:
+            gpu_manager.force_offload()
+        
+        import traceback
+        print(f"❌ PDF OCR Error:\n{traceback.format_exc()}")
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+        
+    finally:
+        if tmp_file and os.path.exists(tmp_file):
+            os.remove(tmp_file)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8001))
     print(f"\n{'='*50}")
